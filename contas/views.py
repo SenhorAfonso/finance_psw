@@ -30,14 +30,12 @@ def definir_contas(request):
         return redirect('/contas/definir_contas/')
 
 def ver_contas(request):
+    from perfil.utils import calcula_contas
+
     MES_ATUAL = datetime.now().month
     DIA_ATUAL = datetime.now().day
 
-    contas = ContaPagar.objects.all()
-    contasPagas = ContaPaga.objects.filter(data_pagamento__month = MES_ATUAL).values('conta')
-    contas_vencidas = contas.filter(dia_pagamento__lt = DIA_ATUAL).exclude(id__in = contasPagas)
-    contas_proximas_vencimento = contas.filter(dia_pagamento__lte = DIA_ATUAL + 5).filter(dia_pagamento__gt = DIA_ATUAL).exclude(id__in = contasPagas)
-    contas_restantes = contas.exclude(id__in = contas_vencidas).exclude(id__in = contasPagas).exclude(id__in = contas_proximas_vencimento)
+    contas_vencidas, contas_proximas_vencimento, contas_restantes = calcula_contas()
     return render(request, 'ver_contas.html', {'contas_vencidas' : contas_vencidas,
                                                'contas_proximas_vencimento' : contas_proximas_vencimento,
                                                'contas_restantes' : contas_restantes})

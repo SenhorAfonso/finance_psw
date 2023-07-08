@@ -64,6 +64,7 @@
                                 <span class="total-conta">R$ {{conta.valor}}</span>
                             </div>
                             <br>
+                            <hr>
                         {% endfor %}
 
                         
@@ -83,14 +84,14 @@
                             <div class="saldo">
                                 <span class="fonte-destaque">Saldo mensal</span>
                                 <br>
-                                <span class="font-light">R$ 0.000,00</span>
+                                <span class="font-light">R$ {{saldo_mensal}}</span>
                             </div>
                         </div>
                         <div class="col-md">
                             <div class="despesa">
                                 <span class="fonte-destaque">Despesa mensal</span>
                                 <br>
-                                <span class="font-light">R$ 0.000,00</span>
+                                <span class="font-light">R$ {{despesa_mensal}}</span>
                             </div>
 
                         </div>
@@ -98,9 +99,14 @@
                     </div>
                     <hr class="hr-borda">
                     <span class="fonte-destaque">Total livre</span>
-                    <span class="font-light negativo">R$ 0.000,00</span>
+                    {% if livre <= 0 %}
+                        <span class="font-light negativo">R$ {{ livre }}</span>
+                    {% else %}
+                    <span class="font-light positivo">R$ {{ livre }}</span>
+                    {% endif %}
+
                     <hr class="hr-borda">
-                    <a href="#" class="botao-principal">Gerenciar dados mensais</a>
+                    <a href="{% url 'view_extrato'%} " class="botao-principal">Gerenciar dados mensais</a>
                 </div>
             </div>
 
@@ -148,12 +154,20 @@
                 <div class="card">
                     <span class="fonte-destaque">Gerenciar contas</span>
                     <hr class="hr-borda">
-
+                    
                     <span class="fonte-destaque">Próximas do vencimento</span>
-                    <span class="fonte-light">3 contas próximas do vencimento</span>
+                    {% if contas_proximas_vencimento %}
+                        <span class="fonte-light">{{contas_proximas_vencimento.lenght}} conta(s) próxima(s) do vencimento</span>
+                    {% else %}
+                        <span class="fonte-light">Não há contas próximas do vencimento</span>
+                    {% endif %}
                     <br>
                     <span class="fonte-destaque negativo">Vencidas</span>
-                    <span class="fonte-light">0 contas vencidas</span>
+                    {% if contas_vencidas %}
+                        <span class="fonte-light">{{contas_vencidas.count}} conta(s) vencida(s)</span>
+                    {% else %}
+                        <span class="fonte-light">Não há contas vencidas</span>
+                    {% endif %}
 
                     <hr class="hr-borda">
                     

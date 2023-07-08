@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.messages import constants
 from .utils import *
 from datetime import datetime
+from contas.views import ver_contas
 
 def home(request):
     valores = Valores.objects.filter(data__month = datetime.now().month)
@@ -13,17 +14,29 @@ def home(request):
     total_entradas = calculaTotal(valores.filter(tipo = 'E'), 'valor')
     total_saidas = calculaTotal(valores.filter(tipo = 'S'), 'valor')
 
+    saldo_mensal = calculaTotal(valores.filter(tipo = 'E').filter(data__month = datetime.now().month), 'valor')
+    despesa_mensal = calculaTotal(valores.filter(tipo = 'S').filter(data__month = datetime.now().month), 'valor')
+    livre = saldo_mensal - despesa_mensal
+
     contas = Conta.objects.all()
     total_contas = calculaTotal(contas, 'valor')
 
     gastos_essenciais, gastos_nao_essenciais = calcula_equilibrio_financeiro()
+
+    contas_vencidas, contas_proximas_vencimento, _ = calcula_contas()
 
     return render(request, 'home.html', {'contas' : contas, 
                                          'total_contas' : total_contas, 
                                          'total_entradas' : total_entradas, 
                                          'total_saidas' : total_saidas,
                                          'gastos_essenciais' : int(gastos_essenciais),
-                                         'gastos_nao_essenciais' : int(gastos_nao_essenciais)})
+                                         'gastos_nao_essenciais' : int(gastos_nao_essenciais),
+                                         'saldo_mensal' : saldo_mensal,
+                                         'despesa_mensal' : despesa_mensal,
+                                         'livre' : livre,
+                                         'contas_vencidas' : contas_vencidas,
+                                         'contas_proximas_vencimento' : contas_proximas_vencimento})
+
 
 def update_categoria(request, id):
     categoria = Categoria.objects.get(id = id)
