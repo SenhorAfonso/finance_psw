@@ -1,15 +1,29 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from .models import Conta, Categoria
+from extrato.models import Valores
 from django.contrib import messages
 from django.contrib.messages import constants
 from .utils import *
+from datetime import datetime
 
 def home(request):
+    valores = Valores.objects.filter(data__month = datetime.now().month)
+
+    total_entradas = calculaTotal(valores.filter(tipo = 'E'), 'valor')
+    total_saidas = calculaTotal(valores.filter(tipo = 'S'), 'valor')
+
     contas = Conta.objects.all()
     total_contas = calculaTotal(contas, 'valor')
 
-    return render(request, 'home.html', {'contas' : contas, 'total_contas' : total_contas})
+    gastos_essenciais, gastos_nao_essenciais = calcula_equilibrio_financeiro()
+
+    return render(request, 'home.html', {'contas' : contas, 
+                                         'total_contas' : total_contas, 
+                                         'total_entradas' : total_entradas, 
+                                         'total_saidas' : total_saidas,
+                                         'gastos_essenciais' : int(gastos_essenciais),
+                                         'gastos_nao_essenciais' : int(gastos_nao_essenciais)})
 
 def update_categoria(request, id):
     categoria = Categoria.objects.get(id = id)
@@ -65,3 +79,16 @@ def cadastrar_categoria(request):
 
     messages.add_message(request, constants.SUCCESS, 'Categoria cadastrada com sucesso!')
     return redirect('/perfil/gerenciar')
+
+def dashboard(request):
+    categorias = Categoria.objects.all()
+    dados = {}
+    for categoria in categorias:
+        total = 0
+        valores = Valores.objects.filter(categoria = categoria)
+        for item in valores:
+            total += item.valor
+        
+        dados[categoria.categoria] = total
+
+    return render(request, 'dashboard.html', {'labels' : list(dados.keys()), 'values' : list(dados.values())})
